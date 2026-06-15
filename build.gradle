@@ -19,9 +19,32 @@ allprojects {
 		maven { url 'https://repo.spring.io/snapshot' }
 		maven { url 'https://repo.spring.io/release' }
 		mavenCentral()
+		if (System.getenv("RELEASE_TRAIN_MAVEN_REPOSITORY_URL") != null) {
+			maven {
+				name = "Release Train"
+				url = System.getenv("RELEASE_TRAIN_MAVEN_REPOSITORY_URL")
+				credentials {
+					username = System.getenv("RELEASE_TRAIN_MAVEN_REPOSITORY_USERNAME")
+					password = System.getenv("RELEASE_TRAIN_MAVEN_REPOSITORY_PASSWORD")
+				}
+			}
+		}
 	}
 
 	configurations.all {
 		resolutionStrategy.cacheChangingModulesFor 1, 'hours'
+	}
+
+	if (project.hasProperty("deploymentRepository")) {
+		plugins.withType(MavenPublishPlugin) {
+			publishing {
+				repositories {
+					maven {
+						url = project.getProperty("deploymentRepository")
+						name = "deployment"
+					}
+				}
+			}
+		}
 	}
 }
